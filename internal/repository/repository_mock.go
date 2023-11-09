@@ -39,19 +39,18 @@ func (m *MockAllInRepo) EXPECT() *MockAllInRepoMockRecorder {
 }
 
 // ApplyJob_Repository mocks base method.
-func (m *MockAllInRepo) ApplyJob_Repository(j model.CreateJob, id uint64) (model.Job, bool, error) {
+func (m *MockAllInRepo) ApplyJob_Repository(id uint64) (model.Job, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ApplyJob_Repository", j, id)
+	ret := m.ctrl.Call(m, "ApplyJob_Repository", id)
 	ret0, _ := ret[0].(model.Job)
-	ret1, _ := ret[1].(bool)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ApplyJob_Repository indicates an expected call of ApplyJob_Repository.
-func (mr *MockAllInRepoMockRecorder) ApplyJob_Repository(j, id any) *gomock.Call {
+func (mr *MockAllInRepoMockRecorder) ApplyJob_Repository(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyJob_Repository", reflect.TypeOf((*MockAllInRepo)(nil).ApplyJob_Repository), j, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyJob_Repository", reflect.TypeOf((*MockAllInRepo)(nil).ApplyJob_Repository), id)
 }
 
 // CreateCompany mocks base method.

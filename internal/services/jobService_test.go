@@ -307,3 +307,88 @@ func TestServices_Getjobid(t *testing.T) {
 		})
 	}
 }
+
+func TestServices_ApplyJob_Service(t *testing.T) {
+	type args struct {
+		ja model.JobApplication
+		id uint64
+	}
+	tests := []struct {
+		name             string
+		args             args
+		want             model.ApprovedApplication
+		wantErr          bool
+		mockRepoResponse func() (model.ApprovedApplication, error)
+	}{
+
+		{
+			name: "successs",
+			args: args{
+				ja: model.JobApplication{
+					Name:           "bumesh",
+					Gmail:          "bumesh@gmail.com",
+					Age:            23,
+					Phone:          9018373973,
+					JobTitle:       "software testing",
+					ExpectedSalary: 26000,
+					NoticePeriod:   40,
+					Experience:     3,
+
+					Qualifications:   []uint{1, 2},
+					Shift:            []uint{1, 2, 3},
+					JobType:          []uint{2, 5, 1},
+					JobLocations:     []uint{1, 2, 4},
+					Technology_stack: []uint{2, 4},
+					WorkMode:         []uint{1, 4},
+				}, id: 2,
+			},
+
+			want: model.ApprovedApplication{
+				Name:  "bumesh",
+				Gmail: "bumesh@gmail.com",
+				Phone: 9018373973,
+			},
+			wantErr: false,
+			mockRepoResponse: func() (model.ApprovedApplication, error) {
+				return model.ApprovedApplication{
+					Name:  "bumesh",
+					Gmail: "bumesh@gmail.com",
+					Phone: 9018373973,
+				}, nil
+			},
+		},
+
+		// {
+		// 	name:    "failure",
+		// 	args:    args{},
+		// 	want:    model.ApprovedApplication{},
+		// 	wantErr: true,
+		// 	mockRepoResponse: func() (model.ApprovedApplication, error) {
+		// 		return model.ApprovedApplication{}, errors.New("job cannot be applied did not meet criteria")
+		// 	},
+		// },
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			mc := gomock.NewController(t)
+
+			mockRepo := repository.NewMockAllInRepo(mc)
+
+			if tt.mockRepoResponse != nil {
+				mockRepo.EXPECT().ApplyJob_Repository(gomock.Any()).Return(tt.mockRepoResponse()).AnyTimes()
+			}
+
+			s, _ := NewServices(mockRepo)
+			got, err := s.ApplyJob_Service(tt.args.ja, tt.args.id)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Services.ApplyJob_Service() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Services.ApplyJob_Service() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

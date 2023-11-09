@@ -1,15 +1,8 @@
 package repository
 
-import "project/internal/model"
-
-// type Company interface {
-// 	CreateCompany(model.Company) (model.Company, error)
-// 	GetAllCompany() ([]model.Company, error)
-// 	GetCompany(id int) (model.Company, error)
-// 	CreateJob(j model.Job) (model.Job, error)
-// 	GetJobs(id int) ([]model.Job, error)
-// 	GetAllJobs() ([]model.Job, error)
-// }
+import (
+	"project/internal/model"
+)
 
 func (r *Repo) CreateJob(j model.Job) (model.Job, error) {
 	err := r.db.Create(&j).Error
@@ -57,14 +50,24 @@ func (r *Repo) GetJobId(id uint64) (model.Job, error) {
 	return j, nil
 }
 
-func (r *Repo) ApplyJob_Repository(j model.CreateJob, id uint64) (model.Job, bool, error) {
+func (r *Repo) ApplyJob_Repository(id uint64) (model.Job, error) {
 
 	var job model.Job
+	tx := r.db.
+		Preload("JobLocations").
+		Preload("TechnologyStack").
+		Preload("WorkModes").
+		Preload("Qualifications").
+		Preload("Shifts").
+		Preload("JobTypes").
+		Where("ID = ?", id)
 
-	tx := r.db.Where("job_id=?", id)
+	err := tx.First(&job).Error
 
-	tx.Find(&job)
+	if err != nil {
+		return model.Job{}, err
+	}
 
-	return model.Job{}, false, nil
+	return job, nil
 
 }

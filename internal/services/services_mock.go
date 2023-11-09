@@ -40,19 +40,18 @@ func (m *MockAllinServices) EXPECT() *MockAllinServicesMockRecorder {
 }
 
 // ApplyJob_Service mocks base method.
-func (m *MockAllinServices) ApplyJob_Service(cj model.CreateJob, id uint64) (model.Job, bool, error) {
+func (m *MockAllinServices) ApplyJob_Service(ja model.JobApplication, id uint64) (model.ApprovedApplication, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ApplyJob_Service", cj, id)
-	ret0, _ := ret[0].(model.Job)
-	ret1, _ := ret[1].(bool)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret := m.ctrl.Call(m, "ApplyJob_Service", ja, id)
+	ret0, _ := ret[0].(model.ApprovedApplication)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ApplyJob_Service indicates an expected call of ApplyJob_Service.
-func (mr *MockAllinServicesMockRecorder) ApplyJob_Service(cj, id any) *gomock.Call {
+func (mr *MockAllinServicesMockRecorder) ApplyJob_Service(ja, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyJob_Service", reflect.TypeOf((*MockAllinServices)(nil).ApplyJob_Service), cj, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyJob_Service", reflect.TypeOf((*MockAllinServices)(nil).ApplyJob_Service), ja, id)
 }
 
 // CompanyCreate mocks base method.

@@ -21,7 +21,7 @@ type AllInRepo interface {
 	GetAllJobs() ([]model.Job, error)
 
 	GetJobId(id uint64) (model.Job, error)
-	ApplyJob_Repository(j model.CreateJob, id uint64) (model.Job, bool, error)
+	ApplyJob_Repository(id uint64) (model.Job, error)
 }
 
 type Repo struct {

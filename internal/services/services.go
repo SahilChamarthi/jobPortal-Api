@@ -22,7 +22,7 @@ type AllinServices interface {
 	FetchAllJobs() ([]model.Job, error)
 
 	Getjobid(id uint64) (model.Job, error)
-	ApplyJob_Service(cj model.CreateJob, id uint64) (model.Job, bool, error)
+	ApplyJob_Service(ja model.JobApplication, id uint64) (model.ApprovedApplication, error)
 }
 
 type Services struct {

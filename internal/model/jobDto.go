@@ -4,32 +4,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type Company struct {
-	gorm.Model
-	CompanyName string `json:"company_name" validate:"required"`
-	Adress      string `json:"company_adress" validate:"required"`
-	Domain      string `json:"domain" validate:"required"`
-}
-
-type CreateCompany struct {
-	CompanyName string `json:"company_name" validate:"required"`
-	Adress      string `json:"company_adress" validate:"required"`
-	Domain      string `json:"domain" validate:"required"`
-}
-
-// type Job struct {
-// 	gorm.Model
-// 	JobTitle  string  `json:"job_title" validate:"required"`
-// 	JobSalary string  `json:"job_salary" validate:"required"`
-// 	Company   Company `gorm:"ForeignKey:uid"`
-// 	Uid       uint64  `JSON:"uid, omitempty"`
-// }
-
-// type CreateJob struct {
-// 	JobTitle  string `json:"job_title" validate:"required"`
-// 	JobSalary string `json:"job_salary" validate:"required"`
-// }
-
 type Job struct {
 	gorm.Model
 	ID                 uint `gorm:"primaryKey;autoIncrement"`
@@ -109,21 +83,26 @@ type WorkMode struct {
 }
 
 type JobApplication struct {
-	Name               string `json:"name" validate:"required"`
-	Gmail              string `json:"gmail" validate:"required"`
-	Age                uint   `json:"age" validate:"required"`
-	JobTitle           string `json:"title" validate:"required"`
-	JobSalary          string `json:"job_salary" validate:"required"`
-	Min_NoticePeriod   string `json:"min_np" validate:"required"`
-	Max_NoticePeriod   string `json:"max_np" validate:"required"`
-	Budget             string `json:"budget" validate:"required"`
-	JobLocations       []uint `json:"job_locations" validate:"required"`
-	Technology_stack   []uint `json:"technology_stack" validate:"required"`
-	WorkMode           []uint `json:"workmode" validate:"required"`
-	Description        string `json:"description" validate:"required"`
-	Minimum_Experience string `json:"min_exp" validate:"required"`
-	Maximum_Experience string `json:"max_exp" validate:"required"`
-	Qualifications     []uint `json:"qualifications" validate:"required"`
-	Shift              []uint `json:"shifts" validate:"required"`
-	Job_Type           []uint `json:"job_type" validate:"required"`
+	Name           string `json:"name" validate:"required"`
+	Gmail          string `json:"gmail" validate:"required"`
+	Age            uint   `json:"age" validate:"required"`
+	Phone          uint   `json:"phone" validate:"required"`
+	JobTitle       string `json:"title" validate:"required"`
+	ExpectedSalary uint   `json:"expected_salary" validate:"required"`
+	NoticePeriod   uint   `json:"notice_period" validate:"required"`
+	Experience     uint   `json:"experience" validate:"required"`
+
+	Qualifications []uint `json:"qualifications" validate:"required"`
+	Shift          []uint `json:"shift" validate:"required"`
+	JobType        []uint `json:"job_type" validate:"required"`
+
+	JobLocations     []uint `json:"job_locations" validate:"required"`
+	Technology_stack []uint `json:"technology_stack" validate:"required"`
+	WorkMode         []uint `json:"workmode" validate:"required"`
+}
+
+type ApprovedApplication struct {
+	Name  string
+	Gmail string
+	Phone uint
 }

@@ -6,6 +6,7 @@ import (
 	"project/internal/middlewear"
 	"project/internal/model"
 	"strconv"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -138,15 +139,15 @@ func (h *handler) applyJob(c *gin.Context) {
 		return
 	}
 
-	id, erro := strconv.ParseUint(c.Param("job_id"), 10, 32)
+	id, erro := strconv.ParseUint(c.Param("id"), 10, 64)
 
 	if erro != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
 		return
 	}
-	var jobCreation model.CreateJob
+	var applicants []model.JobApplication
 	body := c.Request.Body
-	err := json.NewDecoder(body).Decode(&jobCreation)
+	err := json.NewDecoder(body).Decode(&applicants)
 	if err != nil {
 		log.Error().Err(err).Msg("error in decoding")
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
@@ -154,23 +155,36 @@ func (h *handler) applyJob(c *gin.Context) {
 	}
 
 	validate := validator.New()
-	err = validate.Struct(&jobCreation)
-	if err != nil {
-		log.Error().Err(err).Msg("error in validating ")
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
-		return
-	}
-	mj, ok, err := h.r.ApplyJob_Service(jobCreation, id)
 
-	if !ok {
-		return
+	var wg sync.WaitGroup
+	appChan := make(chan model.ApprovedApplication, len(applicants))
+	for _, application := range applicants {
+		wg.Add(1)
+		go func(application model.JobApplication) {
+			defer wg.Done()
+			if err := validate.Struct(application); err != nil {
+				log.Error().Err(err).Str("Trace Id", traceId).Msgf("validation failed for application %s", application.Name)
+				return
+			}
+			user, err := h.r.ApplyJob_Service(application, id)
+			if err != nil {
+				log.Error().Err(err).Str("Trace Id", traceId).Msg("error while applying for job")
+				return
+			}
+
+			appChan <- user
+		}(application)
+	}
+	go func() {
+		wg.Wait()
+		close(appChan)
+	}()
+
+	var users []model.ApprovedApplication
+	for user := range appChan {
+		users = append(users, user)
 	}
 
-	if err != nil {
-		log.Error().Err(err).Str("Trace Id", traceId).Msg("job creatuion problem in db")
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
-		return
-	}
-	c.JSON(http.StatusOK, mj)
+	c.JSON(http.StatusOK, users)
 
 }
