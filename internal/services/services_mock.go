@@ -40,10 +40,10 @@ func (m *MockAllinServices) EXPECT() *MockAllinServicesMockRecorder {
 }
 
 // ApplyJob_Service mocks base method.
-func (m *MockAllinServices) ApplyJob_Service(ja model.JobApplication, id uint64) (model.ApprovedApplication, error) {
+func (m *MockAllinServices) ApplyJob_Service(ja []model.JobApplication, id uint64) ([]model.ApprovedApplication, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ApplyJob_Service", ja, id)
-	ret0, _ := ret[0].(model.ApprovedApplication)
+	ret0, _ := ret[0].([]model.ApprovedApplication)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

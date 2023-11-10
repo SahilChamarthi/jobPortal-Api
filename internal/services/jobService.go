@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"project/internal/model"
+	"sync"
 
 	"github.com/rs/zerolog/log"
 )
@@ -82,51 +83,86 @@ func (s *Services) Getjobid(id uint64) (model.Job, error) {
 	return jobData, nil
 }
 
-func (s *Services) ApplyJob_Service(ja model.JobApplication, id uint64) (model.ApprovedApplication, error) {
+func (s *Services) ApplyJob_Service(ja []model.JobApplication, id uint64) ([]model.ApprovedApplication, error) {
 
-	job, err := s.r.ApplyJob_Repository(id)
+	var wg sync.WaitGroup
+	appChan := make(chan model.ApprovedApplication, len(ja))
+	for _, application := range ja {
+		wg.Add(1)
+		go func(application model.JobApplication) {
+			defer wg.Done()
 
-	if err != nil {
-		return model.ApprovedApplication{}, err
+			job, err := s.r.ApplyJob_Repository(id)
+
+			if err != nil {
+				log.Error().Err(err).Msgf("job not found for the given id %d", id)
+				return
+			}
+
+			approvedApplication, err := checkCriteria(job, application)
+
+			if err != nil {
+				log.Error().Err(err).Msgf("criteria not matched with %s", approvedApplication.Name)
+				return
+			}
+
+			appChan <- approvedApplication
+
+		}(application)
+	}
+	go func() {
+		wg.Wait()
+		close(appChan)
+	}()
+
+	var AllApprovedApplicants []model.ApprovedApplication
+
+	for ac := range appChan {
+		AllApprovedApplicants = append(AllApprovedApplicants, ac)
 	}
 
-	var count int
+	return AllApprovedApplicants, nil
 
-	user := model.ApprovedApplication{
+}
+
+func checkCriteria(j model.Job, ja model.JobApplication) (model.ApprovedApplication, error) {
+
+	approvedApplication := model.ApprovedApplication{
 		Name:  ja.Name,
 		Gmail: ja.Gmail,
 		Phone: ja.Phone,
 	}
 
-	err = errors.New("")
-	if ja.ExpectedSalary <= job.Budget {
+	var count int
+
+	if ja.ExpectedSalary <= j.Budget {
 		log.Info().Str("Budget", "true").Send()
 		count++
 	} else {
 		log.Info().Str("Budget", "false").Send()
-		return model.ApprovedApplication{}, err
+		return model.ApprovedApplication{}, errors.New("not match with job criteria")
 	}
 
-	if ja.NoticePeriod >= job.Min_NoticePeriod && ja.NoticePeriod <= job.Max_NoticePeriod {
+	if ja.NoticePeriod >= j.Min_NoticePeriod && ja.NoticePeriod <= j.Max_NoticePeriod {
 		log.Info().Str("Min_NP", "true").Send()
 		count++
 	} else {
 		log.Info().Str("Min_NP", "false").Send()
-		return model.ApprovedApplication{}, err
+		return model.ApprovedApplication{}, errors.New("not match with job criteria")
 	}
 
-	if ja.Experience >= job.Minimum_Experience && ja.Experience <= job.Maximum_Experience {
+	if ja.Experience >= j.Minimum_Experience && ja.Experience <= j.Maximum_Experience {
 		log.Info().Str("MinExp", "true").Send()
 		count++
 	} else {
 		log.Info().Str("MinExp", "false").Send()
-		return model.ApprovedApplication{}, err
+		return model.ApprovedApplication{}, errors.New("not match with job criteria")
 	}
 
 	//comparing job criteria locations and application criteria locations
 	var loc_job []uint
 	var loc_app []uint
-	for _, v := range job.JobLocations {
+	for _, v := range j.JobLocations {
 		loc_job = append(loc_job, v.ID)
 	}
 
@@ -142,7 +178,7 @@ func (s *Services) ApplyJob_Service(ja model.JobApplication, id uint64) (model.A
 	//comparing job criteria technologystack and application criteria technologystack
 	var tech_job []uint
 	var tech_app []uint
-	for _, v := range job.TechnologyStack {
+	for _, v := range j.TechnologyStack {
 		tech_job = append(tech_job, v.ID)
 	}
 
@@ -157,7 +193,7 @@ func (s *Services) ApplyJob_Service(ja model.JobApplication, id uint64) (model.A
 	//comparing job criteria technologystack and application criteria technologystack
 	var mode_job []uint
 	var mode_app []uint
-	for _, v := range job.WorkModes {
+	for _, v := range j.WorkModes {
 		mode_job = append(mode_job, v.ID)
 	}
 	mode_app = ja.WorkMode
@@ -171,7 +207,7 @@ func (s *Services) ApplyJob_Service(ja model.JobApplication, id uint64) (model.A
 	//comparing job criteria qualification and application criteria qualification
 	var q_job []uint
 	var q_app []uint
-	for _, v := range job.Qualifications {
+	for _, v := range j.Qualifications {
 		q_job = append(q_job, v.ID)
 	}
 	q_app = ja.Qualifications
@@ -185,7 +221,7 @@ func (s *Services) ApplyJob_Service(ja model.JobApplication, id uint64) (model.A
 	//comparing job criteria shifts and application criteria shifts
 	var shift_job []uint
 	var shift_app []uint
-	for _, v := range job.Shifts {
+	for _, v := range j.Shifts {
 		shift_job = append(shift_job, v.ID)
 	}
 	shift_app = ja.Shift
@@ -199,7 +235,7 @@ func (s *Services) ApplyJob_Service(ja model.JobApplication, id uint64) (model.A
 	//comparing job criteria technologystack and application criteria technologystack
 	var type_job []uint
 	var type_app []uint
-	for _, v := range job.JobTypes {
+	for _, v := range j.JobTypes {
 		type_job = append(type_job, v.ID)
 	}
 	type_app = ja.JobType
@@ -211,10 +247,10 @@ func (s *Services) ApplyJob_Service(ja model.JobApplication, id uint64) (model.A
 	}
 
 	if count >= 4 {
-		return user, nil
+		return approvedApplication, nil
 	}
 
-	return model.ApprovedApplication{}, err
+	return model.ApprovedApplication{}, errors.New("not match with job criteria")
 
 }
 
@@ -222,15 +258,11 @@ func (s *Services) ApplyJob_Service(ja model.JobApplication, id uint64) (model.A
 func sliceContainsAtLeastOne(slice, subSlice []uint) bool {
 
 	for i := 0; i < len(slice); i++ {
-
 		for j := 0; j < len(subSlice); j++ {
-
 			if slice[i] == subSlice[j] {
 				return true
 			}
 		}
-
 	}
-
 	return false
 }

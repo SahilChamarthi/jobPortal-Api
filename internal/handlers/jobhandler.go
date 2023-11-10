@@ -6,7 +6,6 @@ import (
 	"project/internal/middlewear"
 	"project/internal/model"
 	"strconv"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -134,7 +133,7 @@ func (h *handler) applyJob(c *gin.Context) {
 	ctx := c.Request.Context()
 	traceId, ok := ctx.Value(middlewear.TraceIdKey).(string)
 	if !ok {
-		log.Error().Str("traceId", traceId).Msg("trace id not found in  handler")
+		log.Error().Str("traceId", traceId).Msg("trace id not found in handler")
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
 		return
 	}
@@ -150,41 +149,31 @@ func (h *handler) applyJob(c *gin.Context) {
 	err := json.NewDecoder(body).Decode(&applicants)
 	if err != nil {
 		log.Error().Err(err).Msg("error in decoding")
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
 		return
 	}
 
 	validate := validator.New()
 
-	var wg sync.WaitGroup
-	appChan := make(chan model.ApprovedApplication, len(applicants))
-	for _, application := range applicants {
-		wg.Add(1)
-		go func(application model.JobApplication) {
-			defer wg.Done()
-			if err := validate.Struct(application); err != nil {
-				log.Error().Err(err).Str("Trace Id", traceId).Msgf("validation failed for application %s", application.Name)
-				return
-			}
-			user, err := h.r.ApplyJob_Service(application, id)
-			if err != nil {
-				log.Error().Err(err).Str("Trace Id", traceId).Msg("error while applying for job")
-				return
-			}
+	var validateApplicants []model.JobApplication
 
-			appChan <- user
-		}(application)
-	}
-	go func() {
-		wg.Wait()
-		close(appChan)
-	}()
+	for _, app := range applicants {
 
-	var users []model.ApprovedApplication
-	for user := range appChan {
-		users = append(users, user)
+		if err := validate.Struct(app); err != nil {
+			log.Error().Err(err).Str("Trace Id", traceId).Msgf("validation failed for application %s", app.Name)
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+			continue
+		}
+		validateApplicants = append(validateApplicants, app)
 	}
 
-	c.JSON(http.StatusOK, users)
+	approvedApps, err := h.r.ApplyJob_Service(validateApplicants, id)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, approvedApps)
 
 }
