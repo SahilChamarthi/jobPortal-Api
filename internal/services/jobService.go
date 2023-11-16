@@ -3,6 +3,8 @@ package services
 import (
 	"errors"
 	"project/internal/model"
+	redispack "project/redisPack"
+	"strconv"
 	"sync"
 
 	"github.com/rs/zerolog/log"
@@ -83,7 +85,9 @@ func (s *Services) Getjobid(id uint64) (model.Job, error) {
 	return jobData, nil
 }
 
-func (s *Services) ApplyJob_Service(ja []model.JobApplication, id uint64) ([]model.ApprovedApplication, error) {
+func (s *Services) ApplyJob_Service(ja []model.JobApplication) ([]model.ApprovedApplication, error) {
+
+	rd := redispack.NewRedisClient()
 
 	var wg sync.WaitGroup
 	appChan := make(chan model.ApprovedApplication, len(ja))
@@ -92,14 +96,25 @@ func (s *Services) ApplyJob_Service(ja []model.JobApplication, id uint64) ([]mod
 		go func(application model.JobApplication) {
 			defer wg.Done()
 
-			job, err := s.r.ApplyJob_Repository(id)
+			jid := application.JobId
+
+			key := strconv.Itoa(int(jid))
+
+			jobDetails, err := s.rd.CheckRedisKey(rd, key)
 
 			if err != nil {
-				log.Error().Err(err).Msgf("job not found for the given id %d", id)
-				return
+				jobFromDb, err := s.r.ApplyJob_Repository(application.JobId)
+
+				if err != nil {
+					log.Error().Err(err).Msgf("job not found for the given id %d", application.JobId)
+					return
+				}
+
+				s.rd.SetRedisKey(rd, key, jobFromDb)
+				jobDetails = jobFromDb
 			}
 
-			approvedApplication, err := checkCriteria(job, application)
+			approvedApplication, err := checkCriteria(jobDetails, application)
 
 			if err != nil {
 				log.Error().Err(err).Msgf("criteria not matched with %s", approvedApplication.Name)
@@ -119,6 +134,10 @@ func (s *Services) ApplyJob_Service(ja []model.JobApplication, id uint64) ([]mod
 
 	for ac := range appChan {
 		AllApprovedApplicants = append(AllApprovedApplicants, ac)
+	}
+
+	if AllApprovedApplicants == nil {
+		return []model.ApprovedApplication{}, errors.New("error occured in db")
 	}
 
 	return AllApprovedApplicants, nil

@@ -2,6 +2,7 @@ package middlewear
 
 import (
 	"context"
+	"errors"
 	"project/internal/auth"
 
 	"github.com/gin-gonic/gin"
@@ -14,6 +15,10 @@ type Middlewear struct {
 }
 
 func NewMiddleWear(a *auth.Auth) (Middlewear, error) {
+	if a == nil {
+		// An error is returned when 'a' is 'nil'.
+		return Middlewear{}, errors.New("auth can't be nil")
+	}
 	return Middlewear{a: a}, nil
 }
 

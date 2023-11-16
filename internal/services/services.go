@@ -4,6 +4,7 @@ import (
 	"errors"
 	"project/internal/model"
 	"project/internal/repository"
+	redispack "project/redisPack"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -22,11 +23,12 @@ type AllinServices interface {
 	FetchAllJobs() ([]model.Job, error)
 
 	Getjobid(id uint64) (model.Job, error)
-	ApplyJob_Service(ja []model.JobApplication, id uint64) ([]model.ApprovedApplication, error)
+	ApplyJob_Service(ja []model.JobApplication) ([]model.ApprovedApplication, error)
 }
 
 type Services struct {
-	r repository.AllInRepo
+	r  repository.AllInRepo
+	rd redispack.Cache
 }
 
 func NewServices(r repository.AllInRepo) (*Services, error) {
@@ -36,3 +38,9 @@ func NewServices(r repository.AllInRepo) (*Services, error) {
 
 	return &Services{r: r}, nil
 }
+
+// func NewRedisService(r redis.Client) (*Services, error) {
+
+// 	return &Services{rd: r}, nil
+
+// }

@@ -30,12 +30,12 @@ type CreateJob struct {
 	JobTitle           string `json:"title" validate:"required"`
 	JobSalary          uint   `json:"job_salary" validate:"required"`
 	Description        string `json:"description" validate:"required"`
-	CompanyID          uint64
-	Min_NoticePeriod   uint `json:"min_np" validate:"required"`
-	Max_NoticePeriod   uint `json:"max_np" validate:"required"`
-	Budget             uint `json:"budget" validate:"required"`
-	Minimum_Experience uint `json:"min_exp" validate:"required"`
-	Maximum_Experience uint `json:"max_exp" validate:"required"`
+	CompanyID          uint64 `json:"company_id" validate:"required"`
+	Min_NoticePeriod   uint   `json:"min_np" validate:"required"`
+	Max_NoticePeriod   uint   `json:"max_np" validate:"required"`
+	Budget             uint   `json:"budget" validate:"required"`
+	Minimum_Experience uint   `json:"min_exp" validate:"required"`
+	Maximum_Experience uint   `json:"max_exp" validate:"required"`
 
 	Qualifications []uint `json:"qualifications" validate:"required"`
 	Shift          []uint `json:"shifts" validate:"required"`
@@ -83,6 +83,7 @@ type WorkMode struct {
 }
 
 type JobApplication struct {
+	JobId          uint64 `json:"job_id" validate:"required"`
 	Name           string `json:"name" validate:"required"`
 	Gmail          string `json:"gmail" validate:"required"`
 	Age            uint   `json:"age" validate:"required"`

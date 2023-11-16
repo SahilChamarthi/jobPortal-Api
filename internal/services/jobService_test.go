@@ -308,108 +308,372 @@ func TestServices_Getjobid(t *testing.T) {
 	}
 }
 
-// func TestServices_ApplyJob_Service(t *testing.T) {
-// 	type args struct {
-// 		ja model.JobApplication
-// 		id uint64
-// 	}
-// 	tests := []struct {
-// 		name             string
-// 		args             args
-// 		want             model.ApprovedApplication
-// 		wantErr          bool
-// 		mockRepoResponse func() (model.ApprovedApplication, error)
-// 	}{
-
-// 		{
-// 			name: "successs",
-// 			args: args{
-// 				ja: model.JobApplication{
-// 					Name:           "bumesh",
-// 					Gmail:          "bumesh@gmail.com",
-// 					Age:            23,
-// 					Phone:          9018373973,
-// 					JobTitle:       "software testing",
-// 					ExpectedSalary: 26000,
-// 					NoticePeriod:   40,
-// 					Experience:     3,
-
-// 					Qualifications:   []uint{1, 2},
-// 					Shift:            []uint{1, 2, 3},
-// 					JobType:          []uint{2, 5, 1},
-// 					JobLocations:     []uint{1, 2, 4},
-// 					Technology_stack: []uint{2, 4},
-// 					WorkMode:         []uint{1, 4},
-// 				}, id: 2,
-// 			},
-
-// 			want: model.ApprovedApplication{
-// 				Name:  "bumesh",
-// 				Gmail: "bumesh@gmail.com",
-// 				Phone: 9018373973,
-// 			},
-// 			wantErr: false,
-// 			mockRepoResponse: func() (model.ApprovedApplication, error) {
-// 				return model.ApprovedApplication{
-// 					Name:  "bumesh",
-// 					Gmail: "bumesh@gmail.com",
-// 					Phone: 9018373973,
-// 				}, nil
-// 			},
-// 		},
-
-// 		// {
-// 		// 	name:    "failure",
-// 		// 	args:    args{},
-// 		// 	want:    model.ApprovedApplication{},
-// 		// 	wantErr: true,
-// 		// 	mockRepoResponse: func() (model.ApprovedApplication, error) {
-// 		// 		return model.ApprovedApplication{}, errors.New("job cannot be applied did not meet criteria")
-// 		// 	},
-// 		// },
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-
-// 			mc := gomock.NewController(t)
-
-// 			mockRepo := repository.NewMockAllInRepo(mc)
-
-// 			if tt.mockRepoResponse != nil {
-// 				mockRepo.EXPECT().ApplyJob_Repository(gomock.Any()).Return(tt.mockRepoResponse()).AnyTimes()
-// 			}
-
-// 			s, _ := NewServices(mockRepo)
-// 			got, err := s.ApplyJob_Service(tt.args.ja, tt.args.id)
-
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("Services.ApplyJob_Service() error = %v, wantErr %v", err, tt.wantErr)
-// 				return
-// 			}
-// 			if !reflect.DeepEqual(got, tt.want) {
-// 				t.Errorf("Services.ApplyJob_Service() = %v, want %v", got, tt.want)
-// 			}
-// 		})
-// 	}
-// }
-
 func TestServices_ApplyJob_Service(t *testing.T) {
 	type args struct {
 		ja []model.JobApplication
-		id uint64
 	}
 	tests := []struct {
-		name    string
-		s       *Services
-		args    args
-		want    []model.ApprovedApplication
-		wantErr bool
+		name             string
+		args             args
+		want             []model.ApprovedApplication
+		wantErr          bool
+		mockRepoResponse func() (model.Job, error)
 	}{
-		// TODO: Add test cases.
+
+		{
+			name: "successs",
+			args: args{
+				ja: []model.JobApplication{
+					{
+						JobId:          1,
+						Name:           "bumesh",
+						Gmail:          "bumesh@gmail.com",
+						Age:            23,
+						Phone:          9018373973,
+						JobTitle:       "software testing",
+						ExpectedSalary: 26000,
+						NoticePeriod:   30,
+						Experience:     3,
+
+						Qualifications:   []uint{1, 2},
+						Shift:            []uint{1},
+						JobType:          []uint{1},
+						JobLocations:     []uint{1},
+						Technology_stack: []uint{1, 2},
+						WorkMode:         []uint{1, 2},
+					},
+					{
+						JobId:          1,
+						Name:           "seenu",
+						Gmail:          "seenu@gmail.com",
+						Age:            24,
+						Phone:          9018373979,
+						JobTitle:       "software testing",
+						ExpectedSalary: 27000,
+						NoticePeriod:   0,
+						Experience:     3,
+
+						Qualifications:   []uint{1, 2},
+						Shift:            []uint{1},
+						JobType:          []uint{1},
+						JobLocations:     []uint{1},
+						Technology_stack: []uint{1, 2},
+						WorkMode:         []uint{1, 2},
+					},
+				},
+			},
+
+			want: []model.ApprovedApplication{
+				{
+					Name:  "bumesh",
+					Gmail: "bumesh@gmail.com",
+					Phone: 9018373973,
+				},
+				{
+					Name:  "seenu",
+					Gmail: "seenu@gmail.com",
+					Phone: 9018373979,
+				},
+			},
+			wantErr: false,
+			mockRepoResponse: func() (model.Job, error) {
+				return model.Job{
+					ID:                 1,
+					JobTitle:           "Java Developper",
+					Description:        "oppartuinity on java develop",
+					CompanyID:          3,
+					Min_NoticePeriod:   0,
+					Max_NoticePeriod:   60,
+					Budget:             60000,
+					Minimum_Experience: 1,
+					Maximum_Experience: 3,
+					JobLocations:       []model.JobLocation{{ID: 1, Name: "banglore"}, {ID: 2, Name: "hyderabad"}},
+					TechnologyStack:    []model.Technology{{ID: 1, Name: "java"}, {ID: 2, Name: "sql"}},
+					WorkModes:          []model.WorkMode{{ID: 1, Name: "remote"}, {ID: 2, Name: "work from office"}},
+					Qualifications:     []model.Qualification{{ID: 1, Name: "B.Tech"}, {ID: 2, Name: "M.Tech"}},
+					Shifts:             []model.Shift{{ID: 1, Name: "day"}, {ID: 2, Name: "night"}},
+					JobTypes:           []model.JobType{{ID: 1, Name: "full time"}, {ID: 2, Name: "contract"}},
+				}, nil
+			},
+		},
+		{
+
+			name: "error in db",
+			args: args{
+				ja: []model.JobApplication{
+					{
+						JobId:          1,
+						Name:           "bumesh",
+						Gmail:          "bumesh@gmail.com",
+						Age:            23,
+						Phone:          9018373973,
+						JobTitle:       "software testing",
+						ExpectedSalary: 26000,
+						NoticePeriod:   30,
+						Experience:     3,
+
+						Qualifications:   []uint{1, 2},
+						Shift:            []uint{1},
+						JobType:          []uint{1},
+						JobLocations:     []uint{1},
+						Technology_stack: []uint{1, 2},
+						WorkMode:         []uint{1, 2},
+					},
+					{
+						JobId:          1,
+						Name:           "seenu",
+						Gmail:          "seenu@gmail.com",
+						Age:            24,
+						Phone:          9018373979,
+						JobTitle:       "software testing",
+						ExpectedSalary: 27000,
+						NoticePeriod:   0,
+						Experience:     3,
+
+						Qualifications:   []uint{1, 2},
+						Shift:            []uint{1},
+						JobType:          []uint{1},
+						JobLocations:     []uint{1},
+						Technology_stack: []uint{1, 2},
+						WorkMode:         []uint{1, 2},
+					},
+				},
+			},
+
+			want:    []model.ApprovedApplication{},
+			wantErr: true,
+			mockRepoResponse: func() (model.Job, error) {
+				return model.Job{}, errors.New("job not found raa")
+			},
+		},
+		{
+			name: "failing in experience",
+			args: args{
+				ja: []model.JobApplication{
+					{
+						JobId:          1,
+						Name:           "bumesh",
+						Gmail:          "bumesh@gmail.com",
+						Age:            23,
+						Phone:          9018373973,
+						JobTitle:       "software testing",
+						ExpectedSalary: 26000,
+						NoticePeriod:   30,
+						Experience:     3,
+
+						Qualifications:   []uint{1, 2},
+						Shift:            []uint{1},
+						JobType:          []uint{1},
+						JobLocations:     []uint{1},
+						Technology_stack: []uint{1, 2},
+						WorkMode:         []uint{1, 2},
+					},
+					{
+						JobId:          1,
+						Name:           "seenu",
+						Gmail:          "seenu@gmail.com",
+						Age:            24,
+						Phone:          9018373979,
+						JobTitle:       "software testing",
+						ExpectedSalary: 27000,
+						NoticePeriod:   0,
+						Experience:     5,
+
+						Qualifications:   []uint{1, 2},
+						Shift:            []uint{1},
+						JobType:          []uint{1},
+						JobLocations:     []uint{1},
+						Technology_stack: []uint{1, 2},
+						WorkMode:         []uint{1, 2},
+					},
+				},
+			},
+
+			want: []model.ApprovedApplication{
+				{
+					Name:  "seenu",
+					Gmail: "seenu@gmail.com",
+					Phone: 9018373979,
+				},
+			},
+			wantErr: false,
+			mockRepoResponse: func() (model.Job, error) {
+				return model.Job{
+					ID:                 1,
+					JobTitle:           "Java Developper",
+					Description:        "oppartuinity on java develop",
+					CompanyID:          3,
+					Min_NoticePeriod:   0,
+					Max_NoticePeriod:   60,
+					Budget:             60000,
+					Minimum_Experience: 5,
+					Maximum_Experience: 8,
+					JobLocations:       []model.JobLocation{{ID: 1, Name: "banglore"}, {ID: 2, Name: "hyderabad"}},
+					TechnologyStack:    []model.Technology{{ID: 1, Name: "java"}, {ID: 2, Name: "sql"}},
+					WorkModes:          []model.WorkMode{{ID: 1, Name: "remote"}, {ID: 2, Name: "work from office"}},
+					Qualifications:     []model.Qualification{{ID: 1, Name: "B.Tech"}, {ID: 2, Name: "M.Tech"}},
+					Shifts:             []model.Shift{{ID: 1, Name: "day"}, {ID: 2, Name: "night"}},
+					JobTypes:           []model.JobType{{ID: 1, Name: "full time"}, {ID: 2, Name: "contract"}},
+				}, nil
+			},
+		},
+		{
+			name: "failing in budget",
+			args: args{
+				ja: []model.JobApplication{
+					{
+						JobId:          1,
+						Name:           "bumesh",
+						Gmail:          "bumesh@gmail.com",
+						Age:            23,
+						Phone:          9018373973,
+						JobTitle:       "software testing",
+						ExpectedSalary: 80000,
+						NoticePeriod:   30,
+						Experience:     3,
+
+						Qualifications:   []uint{1, 2},
+						Shift:            []uint{1},
+						JobType:          []uint{1},
+						JobLocations:     []uint{1},
+						Technology_stack: []uint{1, 2},
+						WorkMode:         []uint{1, 2},
+					},
+					{
+						JobId:          1,
+						Name:           "seenu",
+						Gmail:          "seenu@gmail.com",
+						Age:            24,
+						Phone:          9018373979,
+						JobTitle:       "software testing",
+						ExpectedSalary: 90000,
+						NoticePeriod:   0,
+						Experience:     3,
+
+						Qualifications:   []uint{1, 2},
+						Shift:            []uint{1},
+						JobType:          []uint{1},
+						JobLocations:     []uint{1},
+						Technology_stack: []uint{1, 2},
+						WorkMode:         []uint{1, 2},
+					},
+				},
+			},
+
+			want: []model.ApprovedApplication{
+				{
+					Name:  "bumesh",
+					Gmail: "bumesh@gmail.com",
+					Phone: 9018373973,
+				},
+			},
+			wantErr: false,
+			mockRepoResponse: func() (model.Job, error) {
+				return model.Job{
+					ID:                 1,
+					JobTitle:           "Java Developper",
+					Description:        "oppartuinity on java develop",
+					CompanyID:          3,
+					Min_NoticePeriod:   0,
+					Max_NoticePeriod:   60,
+					Budget:             80000,
+					Minimum_Experience: 1,
+					Maximum_Experience: 3,
+					JobLocations:       []model.JobLocation{{ID: 1, Name: "banglore"}, {ID: 2, Name: "hyderabad"}},
+					TechnologyStack:    []model.Technology{{ID: 1, Name: "java"}, {ID: 2, Name: "sql"}},
+					WorkModes:          []model.WorkMode{{ID: 1, Name: "remote"}, {ID: 2, Name: "work from office"}},
+					Qualifications:     []model.Qualification{{ID: 1, Name: "B.Tech"}, {ID: 2, Name: "M.Tech"}},
+					Shifts:             []model.Shift{{ID: 1, Name: "day"}, {ID: 2, Name: "night"}},
+					JobTypes:           []model.JobType{{ID: 1, Name: "full time"}, {ID: 2, Name: "contract"}},
+				}, nil
+			},
+		},
+		{
+			name: "failing in notice period",
+			args: args{
+				ja: []model.JobApplication{
+					{
+						JobId:          1,
+						Name:           "bumesh",
+						Gmail:          "bumesh@gmail.com",
+						Age:            23,
+						Phone:          9018373973,
+						JobTitle:       "software testing",
+						ExpectedSalary: 26000,
+						NoticePeriod:   80,
+						Experience:     3,
+
+						Qualifications:   []uint{1, 2},
+						Shift:            []uint{1},
+						JobType:          []uint{1},
+						JobLocations:     []uint{1},
+						Technology_stack: []uint{1, 2},
+						WorkMode:         []uint{1, 2},
+					},
+					{
+						JobId:          1,
+						Name:           "seenu",
+						Gmail:          "seenu@gmail.com",
+						Age:            24,
+						Phone:          9018373979,
+						JobTitle:       "software testing",
+						ExpectedSalary: 27000,
+						NoticePeriod:   0,
+						Experience:     3,
+
+						Qualifications:   []uint{1, 2},
+						Shift:            []uint{1},
+						JobType:          []uint{1},
+						JobLocations:     []uint{1},
+						Technology_stack: []uint{1, 2},
+						WorkMode:         []uint{1, 2},
+					},
+				},
+			},
+
+			want: []model.ApprovedApplication{
+				{
+					Name:  "seenu",
+					Gmail: "seenu@gmail.com",
+					Phone: 9018373979,
+				},
+			},
+			wantErr: false,
+			mockRepoResponse: func() (model.Job, error) {
+				return model.Job{
+					ID:                 1,
+					JobTitle:           "Java Developper",
+					Description:        "oppartuinity on java develop",
+					CompanyID:          3,
+					Min_NoticePeriod:   0,
+					Max_NoticePeriod:   60,
+					Budget:             60000,
+					Minimum_Experience: 1,
+					Maximum_Experience: 3,
+					JobLocations:       []model.JobLocation{{ID: 1, Name: "banglore"}, {ID: 2, Name: "hyderabad"}},
+					TechnologyStack:    []model.Technology{{ID: 1, Name: "java"}, {ID: 2, Name: "sql"}},
+					WorkModes:          []model.WorkMode{{ID: 1, Name: "remote"}, {ID: 2, Name: "work from office"}},
+					Qualifications:     []model.Qualification{{ID: 1, Name: "B.Tech"}, {ID: 2, Name: "M.Tech"}},
+					Shifts:             []model.Shift{{ID: 1, Name: "day"}, {ID: 2, Name: "night"}},
+					JobTypes:           []model.JobType{{ID: 1, Name: "full time"}, {ID: 2, Name: "contract"}},
+				}, nil
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.s.ApplyJob_Service(tt.args.ja, tt.args.id)
+
+			mc := gomock.NewController(t)
+
+			mockRepo := repository.NewMockAllInRepo(mc)
+
+			if tt.mockRepoResponse != nil {
+				mockRepo.EXPECT().ApplyJob_Repository(gomock.Any()).Return(tt.mockRepoResponse()).AnyTimes()
+			}
+
+			s, _ := NewServices(mockRepo)
+			got, err := s.ApplyJob_Service(tt.args.ja)
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Services.ApplyJob_Service() error = %v, wantErr %v", err, tt.wantErr)
 				return

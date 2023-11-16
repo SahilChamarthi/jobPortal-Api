@@ -138,12 +138,6 @@ func (h *handler) applyJob(c *gin.Context) {
 		return
 	}
 
-	id, erro := strconv.ParseUint(c.Param("id"), 10, 64)
-
-	if erro != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
-		return
-	}
 	var applicants []model.JobApplication
 	body := c.Request.Body
 	err := json.NewDecoder(body).Decode(&applicants)
@@ -167,7 +161,9 @@ func (h *handler) applyJob(c *gin.Context) {
 		validateApplicants = append(validateApplicants, app)
 	}
 
-	approvedApps, err := h.r.ApplyJob_Service(validateApplicants, id)
+	var approvedApps []model.ApprovedApplication
+
+	approvedApps, err = h.r.ApplyJob_Service(validateApplicants)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
