@@ -155,7 +155,7 @@ func (h *handler) applyJob(c *gin.Context) {
 
 		if err := validate.Struct(app); err != nil {
 			log.Error().Err(err).Str("Trace Id", traceId).Msgf("validation failed for application %s", app.Name)
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+			//c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
 			continue
 		}
 		validateApplicants = append(validateApplicants, app)

@@ -22,6 +22,6 @@ func Api(a *auth.Auth, s *services.Services) *gin.Engine {
 	r.GET("/api/companies/:company_id/jobs", m.Auth(h.getJob))
 	r.GET("/api/jobs", m.Auth(h.getAllJob))
 	r.GET("/api/jobs/:id", m.Auth(h.GetJobById))
-	r.POST("/api/applyjob/:id", m.Auth(h.applyJob))
+	r.POST("/api/applyjob", m.Auth(h.applyJob))
 	return r
 }

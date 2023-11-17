@@ -3,7 +3,6 @@ package services
 import (
 	"errors"
 	"project/internal/model"
-	redispack "project/redisPack"
 	"strconv"
 	"sync"
 
@@ -87,8 +86,6 @@ func (s *Services) Getjobid(id uint64) (model.Job, error) {
 
 func (s *Services) ApplyJob_Service(ja []model.JobApplication) ([]model.ApprovedApplication, error) {
 
-	rd := redispack.NewRedisClient()
-
 	var wg sync.WaitGroup
 	appChan := make(chan model.ApprovedApplication, len(ja))
 	for _, application := range ja {
@@ -100,7 +97,7 @@ func (s *Services) ApplyJob_Service(ja []model.JobApplication) ([]model.Approved
 
 			key := strconv.Itoa(int(jid))
 
-			jobDetails, err := s.rd.CheckRedisKey(rd, key)
+			jobDetails, err := s.rd.CheckRedisKey(key)
 
 			if err != nil {
 				jobFromDb, err := s.r.ApplyJob_Repository(application.JobId)
@@ -110,7 +107,7 @@ func (s *Services) ApplyJob_Service(ja []model.JobApplication) ([]model.Approved
 					return
 				}
 
-				s.rd.SetRedisKey(rd, key, jobFromDb)
+				s.rd.SetRedisKey(key, jobFromDb)
 				jobDetails = jobFromDb
 			}
 

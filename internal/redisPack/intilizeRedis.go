@@ -20,20 +20,20 @@ func NewRedisClient() *redis.Client {
 }
 
 type Cache interface {
-	CheckRedisKey(rdb *redis.Client, key string) (model.Job, error)
-	SetRedisKey(rdb *redis.Client, key string, jobData model.Job)
+	CheckRedisKey(key string) (model.Job, error)
+	SetRedisKey(key string, jobData model.Job)
 }
 
-type RadisDbConnection struct {
-	rdc redis.Client
+type RedisConnection struct {
+	rdc *redis.Client
 }
 
-func NewRadisDbConnection(r redis.Client) RadisDbConnection {
+func NewRedisConnection(r *redis.Client) *RedisConnection {
 
-	return RadisDbConnection{rdc: r}
+	return &RedisConnection{rdc: r}
 }
 
-func (r *RadisDbConnection) CheckRedisKey(key string) (model.Job, error) {
+func (r *RedisConnection) CheckRedisKey(key string) (model.Job, error) {
 
 	val, err := r.rdc.Get(key).Result()
 	if err == redis.Nil {
@@ -47,7 +47,7 @@ func (r *RadisDbConnection) CheckRedisKey(key string) (model.Job, error) {
 	return job, nil
 }
 
-func (r *RadisDbConnection) SetRedisKey(key string, jobData model.Job) {
+func (r *RedisConnection) SetRedisKey(key string, jobData model.Job) {
 
 	jobdata, err := json.Marshal(jobData)
 	if err != nil {

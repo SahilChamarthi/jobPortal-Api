@@ -3,8 +3,8 @@ package services
 import (
 	"errors"
 	"project/internal/model"
+	redispack "project/internal/redisPack"
 	"project/internal/repository"
-	redispack "project/redisPack"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -31,16 +31,16 @@ type Services struct {
 	rd redispack.Cache
 }
 
-func NewServices(r repository.AllInRepo) (*Services, error) {
+func NewServices(r repository.AllInRepo, rc redispack.Cache) (*Services, error) {
 	if r == nil {
 		return nil, errors.New("database connection not given")
 	}
 
-	return &Services{r: r}, nil
+	return &Services{r: r, rd: rc}, nil
 }
 
-// func NewRedisService(r redis.Client) (*Services, error) {
+// func NewRedisService(rc redispack.Cache) (*Services, error) {
 
-// 	return &Services{rd: r}, nil
+// 	return &Services{rd: rc}, nil
 
 // }

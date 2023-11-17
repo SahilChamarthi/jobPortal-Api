@@ -16,9 +16,8 @@ import (
 
 type handler struct {
 	a *auth.Auth
-	// 	us services.UsersService
-	// 	cs services.CompanyService
 	r services.AllinServices
+	
 }
 
 func NewHandler(a *auth.Auth, r services.AllinServices) (*handler, error) {

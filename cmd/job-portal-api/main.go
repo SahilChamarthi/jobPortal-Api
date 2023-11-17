@@ -7,6 +7,7 @@ import (
 	"project/internal/auth"
 	"project/internal/database"
 	"project/internal/handlers"
+	redispack "project/internal/redisPack"
 	"project/internal/repository"
 	"project/internal/services"
 
@@ -44,6 +45,9 @@ func startApp() error {
 		return fmt.Errorf("cannot create auth instance %w", err)
 	}
 
+	redisClient := redispack.NewRedisClient()
+	rc := redispack.NewRedisConnection(redisClient)
+
 	db, err := database.DataBaseConnect()
 	if err != nil {
 		return err
@@ -53,7 +57,7 @@ func startApp() error {
 		return err
 	}
 
-	se, err := services.NewServices(repo)
+	se, err := services.NewServices(repo, rc)
 
 	if err != nil {
 		return err
