@@ -19,6 +19,7 @@ func NewRedisClient() *redis.Client {
 	return redisDB
 }
 
+//go:generate mockgen -source intilizeRedis.go -destination redispack_mock.go -package redispack
 type Cache interface {
 	CheckRedisKey(key string) (model.Job, error)
 	SetRedisKey(key string, jobData model.Job)

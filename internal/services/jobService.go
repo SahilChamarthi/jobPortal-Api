@@ -114,7 +114,7 @@ func (s *Services) ApplyJob_Service(ja []model.JobApplication) ([]model.Approved
 			approvedApplication, err := checkCriteria(jobDetails, application)
 
 			if err != nil {
-				log.Error().Err(err).Msgf("criteria not matched with %s", approvedApplication.Name)
+				log.Error().Err(err).Msgf("criteria not matched with %s", application.Name)
 				return
 			}
 
